@@ -1,0 +1,33 @@
+﻿##引入宏定义
+$!init
+$!define
+
+##使用宏定义设置回调（保存位置与文件后缀）
+#save("/entity/dto", "IDto.java")
+
+##使用宏定义设置包后缀
+#setPackageSuffix("entity.dto")
+
+##使用全局变量实现默认包导入
+$!autoImport
+import com.nwf.common.core.entity.BaseDto;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import javax.validation.constraints.NotBlank;
+
+##使用宏定义实现类注释信息
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class $!{tableInfo.name}IDto extends BaseDto {
+#foreach($column in $tableInfo.fullColumn)
+	@Schema(title = "#if(${column.comment})${column.comment}#end")
+    private $!{tool.getClsNameByFullName($column.type)} $!{column.name};
+#end
+
+	TODO remove property: createdBy from above,  and only use below:
+	@NotBlank
+	@Schema(title = "创建人")
+    private String createdBy;
+}

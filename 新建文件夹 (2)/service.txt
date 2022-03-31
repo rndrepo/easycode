@@ -1,0 +1,72 @@
+##定义初始变量
+$!init
+#set($tableName = $tool.append($tableInfo.name, "Service"))
+##设置回调
+$!callback.setFileName($tool.append("I", $tableName, ".java"))
+$!callback.setSavePath($tool.append($tableInfo.savePath, "/service"))
+
+##拿到主键
+#if(!$tableInfo.pkColumn.isEmpty())
+    #set($pk = $tableInfo.pkColumn.get(0))
+#end
+
+#if($tableInfo.savePackageName)package $!{tableInfo.savePackageName}.#{end}service;
+
+import com.github.pagehelper.PageInfo;
+import $!{tableInfo.savePackageName}.entity.po.$!{tableInfo.name}Po;
+import $!{tableInfo.savePackageName}.entity.qo.$!{tableInfo.name}Qo;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.List;
+
+/**
+ * $!{tableInfo.comment}($!{tableInfo.name})服务接口
+ *
+ * @since $!time.currTime()
+ */
+public interface I$!{tableName} {
+
+    /**
+     * 通过ID查询单条数据
+     *
+     * @param id 主键
+     * @return 实例对象
+     */
+    $!{tableInfo.name}Po query$!{tableInfo.name}ById(@NotBlank String id) ;
+
+    /**
+     * 查询多条数据
+     *
+     * @param param 查询条件
+     * @return 对象列表
+     */
+	PageInfo<$!{tableInfo.name}Po> query$!{tableInfo.name}ByParam(@Valid @NotNull $!{tableInfo.name}Qo param);
+
+    /**
+     * 新增数据
+     *
+     * @param $!{tool.firstLowerCase($tableInfo.name)}Po 实例对象
+     * @return 新建数据ID
+     */
+    void insert$!{tableInfo.name}(@Valid @NotNull $!{tableInfo.name}Po $!tool.firstLowerCase($!{tableInfo.name})Po);
+
+    /**
+     * 修改数据
+     *
+     * @param $!tool.firstLowerCase($!{tableInfo.name})Po 实例对象
+     * @return 是否成功
+     */
+    void update$!{tableInfo.name}(@Valid @NotNull $!{tableInfo.name}Po $!tool.firstLowerCase($!{tableInfo.name})Po) ;
+
+    /**
+     * 通过ID删除数据
+     *
+     * @param id 主键列表
+     * @return 是否成功
+     */
+    void delete$!{tableInfo.name}ById(@Valid @NotEmpty List<$!pk.shortType> id);
+
+}

@@ -1,0 +1,30 @@
+﻿##引入宏定义
+$!init
+$!define
+
+##使用宏定义设置回调（保存位置与文件后缀）
+#save("/entity/po", "Po.java")
+
+##使用宏定义设置包后缀
+#setPackageSuffix("entity.po")
+
+##使用全局变量实现默认包导入
+$!autoImport
+import com.nwf.common.core.entity.BasePo;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+##使用宏定义实现类注释信息
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class $!{tableInfo.name}Po extends BasePo {
+#foreach($column in $tableInfo.fullColumn)
+    @Schema(title = "#if(${column.comment})${column.comment}#end")
+    private $!{tool.getClsNameByFullName($column.type)} $!{column.name};
+#end
+
+	TODO remove auto generate property for: createdBy, createdTime, updatedBy, updatedTime， these fields already exist in BasePo
+	TODO double check property against business logic, and remove un-necessary field
+	TODO add validation constraints according to column in database
+}

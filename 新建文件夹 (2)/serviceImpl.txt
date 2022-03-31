@@ -1,0 +1,155 @@
+﻿##定义初始变量
+$!init
+#set($tableName = $tool.append($tableInfo.name, "ServiceImpl"))
+##设置回调
+$!callback.setFileName($tool.append($tableName, ".java"))
+$!callback.setSavePath($tool.append($tableInfo.savePath, "/service/impl"))
+
+##拿到主键
+#if(!$tableInfo.pkColumn.isEmpty())
+    #set($pk = $tableInfo.pkColumn.get(0))
+#end
+
+#if($tableInfo.savePackageName)package $!{tableInfo.savePackageName}.#{end}service.impl;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.google.common.base.Preconditions;
+import $!{tableInfo.savePackageName}.entity.po.$!{tableInfo.name}Po;
+import $!{tableInfo.savePackageName}.entity.qo.$!{tableInfo.name}Qo;
+import $!{tableInfo.savePackageName}.dao.$!{tableInfo.name}Dao;
+import $!{tableInfo.savePackageName}.service.I$!{tableInfo.name}Service;
+import com.nwf.common.core.constant.CommonConstant;
+import com.nwf.common.core.exception.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * $!{tableInfo.comment}($!{tableInfo.name})服务实现类
+ *
+ * @since $!time.currTime()
+ */
+@Slf4j
+@Service
+@Validated
+public class $!{tableName} implements I$!{tableInfo.name}Service {
+
+    @Autowired
+    private $!{tableInfo.name}Dao $!tool.firstLowerCase($!{tableInfo.name})Dao;
+
+    /**
+     * 通过ID查询单条数据
+     *
+     * @param id 主键
+     * @return 实例对象
+     */
+    @Override
+    public $!{tableInfo.name}Po query$!{tableInfo.name}ById(@NotBlank String id) {
+		//============ 以下为约束条件   ==============
+		
+		//============ 以下为预设默认值   ==============
+		
+        //============ 以下为正常执行的业务逻辑   ==============
+		$!{tableInfo.name}Po result = $!{tool.firstLowerCase($!{tableInfo.name})}Dao.query$!{tableInfo.name}ById(id);
+        if (result == null) {
+            BusinessException.throwDBDataNotFoundException();
+        }
+        return result;
+    }
+
+    /**
+     * 查询多条数据
+     *
+     * @param param 查询条件
+     * @return 对象列表
+     */
+    @Override
+    public PageInfo<$!{tableInfo.name}Po> query$!{tableInfo.name}ByParam(@Valid @NotNull $!{tableInfo.name}Qo param) {
+        //============ 以下为约束条件   ==============
+		
+		//============ 以下为预设默认值   ==============
+				
+        //============ 以下为正常执行的业务逻辑   ==============
+        //设置分页并返回总数
+		return PageHelper.startPage(param.getPageNum(), param.getPageSize(), param.getIsTotalCountRequire())
+			   .doSelectPageInfo(() -> $!{tool.firstLowerCase($!{tableInfo.name})}Dao.query$!{tableInfo.name}ByParam(param));
+    }
+
+    /**
+     * 新增数据
+     *
+     * @param $!tool.firstLowerCase($!{tableInfo.name})Po 实例对象
+     * @return 新建数据ID
+     */
+    @Override
+    public void insert$!{tableInfo.name}(@Valid @NotNull $!{tableInfo.name}Po $!{tool.firstLowerCase($!{tableInfo.name})}Po) {
+		//============ 以下为约束条件   ==============
+		Preconditions.checkArgument(!StringUtils.isEmpty($!{tool.firstLowerCase($!{tableInfo.name})}Po.getCreatedBy()), "创建人不能为空!");
+		
+		//============ 以下为预设默认值   ==============
+		$!{tool.firstLowerCase($!{tableInfo.name})}Po.setCreatedTime(LocalDateTime.now());
+		
+        //============ 以下为正常执行的业务逻辑   ==============
+        int result = $!{tool.firstLowerCase($!{tableInfo.name})}Dao.insert$!{tableInfo.name}($!{tool.firstLowerCase($!{tableInfo.name})}Po);
+		log.info("Number of rows inserted: {}", result);
+        if (result != 1) {
+            BusinessException.throwDBInsertException();
+        }
+    }
+
+    /**
+     * 修改数据
+     *
+     * @param $!tool.firstLowerCase($!{tableInfo.name})Po 实例对象
+     * @return 是否成功
+     */
+    @Override
+    public void update$!{tableInfo.name}(@Valid @NotNull $!{tableInfo.name}Po $!{tool.firstLowerCase($!{tableInfo.name})}Po) {
+		//============ 以下为约束条件   ==============
+        Preconditions.checkArgument($!{tool.firstLowerCase($!{tableInfo.name})}Po.getId() != null, "ID不能为空!");
+		Preconditions.checkArgument(!StringUtils.isEmpty($!{tool.firstLowerCase($!{tableInfo.name})}Po.getUpdatedBy()), "更新人不能为空!");
+        query$!{tableInfo.name}ById($!{tool.firstLowerCase($!{tableInfo.name})}Po.getId());
+		
+		//============ 以下为预设默认值   ==============
+		$!{tool.firstLowerCase($!{tableInfo.name})}Po.setUpdatedTime(LocalDateTime.now());
+		
+        //============ 以下为正常执行的业务逻辑   ==============
+        Integer result = $!{tool.firstLowerCase($!{tableInfo.name})}Dao.update$!{tableInfo.name}($!tool.firstLowerCase($!{tableInfo.name})Po);
+        log.info("Number of rows updated: {}", result);
+        if (result != 1) {
+            BusinessException.throwDBUpdateException();
+        }
+    }
+
+    /**
+     * 通过ID删除数据
+     *
+     * @param id 主键列表
+     * @return 是否成功
+     */
+    @Override
+    public void delete$!{tableInfo.name}ById(@Valid @NotEmpty List<$!pk.shortType> id) {
+		//============ 以下为约束条件   ==============
+		
+		
+		//============ 以下为预设默认值   ==============
+		
+		
+        //============ 以下为正常执行的业务逻辑   ==============
+		Integer result = $!{tool.firstLowerCase($!{tableInfo.name})}Dao.delete$!{tableInfo.name}ById(id);
+        log.info("Number of rows deleted: {}", result);
+        if (result < 1) {
+            BusinessException.throwDBDeleteException();
+        }
+    }
+}

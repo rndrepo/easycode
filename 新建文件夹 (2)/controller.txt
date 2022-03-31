@@ -1,0 +1,106 @@
+##定义初始变量
+$!init
+#set($tableName = $tool.append($tableInfo.name, "Controller"))
+
+##设置回调
+$!callback.setFileName($tool.append($tableName, ".java"))
+$!callback.setSavePath($tool.append($tableInfo.savePath, "/controller"))
+
+##拿到主键
+#if(!$tableInfo.pkColumn.isEmpty())
+    #set($pk = $tableInfo.pkColumn.get(0))
+#end
+
+#if($tableInfo.savePackageName)package $!{tableInfo.savePackageName}.#{end}controller;
+
+import com.github.pagehelper.PageInfo;
+import $!{tableInfo.savePackageName}.entity.dto.$!{tableInfo.name}IDto;
+import $!{tableInfo.savePackageName}.entity.dto.$!{tableInfo.name}UDto;
+import $!{tableInfo.savePackageName}.entity.qo.$!{tableInfo.name}Qo;
+import $!{tableInfo.savePackageName}.entity.vo.$!{tableInfo.name}Vo;
+import $!{tableInfo.savePackageName}.mapping.$!{tableInfo.name}Mapping;
+import $!{tableInfo.savePackageName}.service.I$!{tableInfo.name}Service;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.List;
+
+/**
+ * $!{tableInfo.comment}($!{tableInfo.name})控制层
+ *
+ * @since $!time.currTime()
+ */
+@Slf4j
+@RestController
+@RequestMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
+@Tag(name = "", description = "")
+public class $!{tableName} {
+
+	TODO double check method against business logic, and remove un-necessary method 
+	
+    /**
+     * 服务对象
+     */
+    @Autowired
+    I$!{tableInfo.name}Service $!{tool.firstLowerCase($tableInfo.name)}Service;
+	
+	@Autowired
+	$!{tableInfo.name}Mapping $!{tool.firstLowerCase($tableInfo.name)}Mapping;
+	
+    @Operation(summary = "查询", description = "通过主键查询单条")
+    @GetMapping(value = "/{id}")
+    public $!{tableInfo.name}Vo query$!{tableInfo.name}ById(@NotBlank @PathVariable(value = "id") String id) {
+        //============ 以下为约束条件 ==============
+        
+        //============ 以下为正常执行的业务逻辑 ==============
+        return $!{tool.firstLowerCase($tableInfo.name)}Mapping.poToVo($!{tool.firstLowerCase($tableInfo.name)}Service.query$!{tableInfo.name}ById(id));
+    }
+	
+    @Operation(summary = "查询", description = "通过条件查询多条")
+    @GetMapping(value = "/")
+    public PageInfo<$!{tableInfo.name}Vo> query$!{tableInfo.name}ByParam(@Valid @NotNull $!{tableInfo.name}Qo param) {
+        //============ 以下为约束条件 ==============
+		
+        //============ 以下为正常执行的业务逻辑 ==============
+        return $!{tool.firstLowerCase($tableInfo.name)}Mapping.poToVo($!{tool.firstLowerCase($tableInfo.name)}Service.query$!{tableInfo.name}ByParam(param));
+    }
+	
+	@Operation(summary = "创建", description = "创建")
+    @PostMapping(value = "/")
+    public Boolean insert$!{tableInfo.name}(@Valid @NotNull @RequestBody $!{tableInfo.name}IDto $!tool.firstLowerCase($!{tableInfo.name})IDto) {
+        //============ 以下为约束条件 ==============
+        
+        //============ 以下为正常执行的业务逻辑 ==============
+        $!{tool.firstLowerCase($tableInfo.name)}Service.insert$!{tableInfo.name}($!{tool.firstLowerCase($tableInfo.name)}Mapping.idtoToPo($!tool.firstLowerCase($!{tableInfo.name})IDto));
+        return true;
+    }
+
+    @Operation(summary = "删除", description = "删除多条")
+    @DeleteMapping(value = "/{id}")
+    public Boolean delete$!{tableInfo.name}ById(@NotEmpty @PathVariable(value = "id") List<Integer> id) {
+        //============ 以下为约束条件 ==============
+        
+        //============ 以下为正常执行的业务逻辑 ==============
+        $!{tool.firstLowerCase($tableInfo.name)}Service.delete$!{tableInfo.name}ById(id);
+        return true;
+    }
+
+    @Operation(summary = "更新", description = "更新")
+    @PutMapping(value = "/{id}")
+    public Boolean update$!{tableInfo.name}(@NotBlank @PathVariable(value = "id") String id, @NotNull @Valid @RequestBody $!{tableInfo.name}UDto $!tool.firstLowerCase($!{tableInfo.name})UDto) {
+        //============ 以下为约束条件 ==============
+        
+        //============ 以下为正常执行的业务逻辑 ==============
+		$!{tool.firstLowerCase($!{tableInfo.name})}UDto.setId(id);
+		$!{tool.firstLowerCase($tableInfo.name)}Service.update$!{tableInfo.name}($!{tool.firstLowerCase($tableInfo.name)}Mapping.udtoToPo($!tool.firstLowerCase($!{tableInfo.name})UDto));
+        return true;
+    }
+}

@@ -1,0 +1,44 @@
+﻿##引入宏定义
+$!init
+$!define
+
+##使用宏定义设置回调（保存位置与文件后缀）
+#save("/entity/vo", "Vo.java")
+
+##使用宏定义设置包后缀
+#setPackageSuffix("entity.vo")
+
+##使用全局变量实现默认包导入
+$!autoImport
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.nwf.common.core.constant.CommonConstant;
+import com.nwf.common.core.entity.BaseVo;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.time.LocalDateTime;
+
+##使用宏定义实现类注释信息
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class $!{tableInfo.name}Vo extends BaseVo {
+检查是否所有字段是否需要
+#foreach($column in $tableInfo.fullColumn)
+    @Schema(title = "#if(${column.comment})${column.comment}#end")
+    private $!{tool.getClsNameByFullName($column.type)} $!{column.name};
+#end
+
+	TODO remove validation constraints according to column in database
+	TODO remove similar property for: createdBy updatedBy createdTime updatedTime from above, and only use below:
+	@Schema(title = "创建人")
+    private String createdBy;
+	@JsonFormat(pattern = CommonConstant.Pattern.DATETIME_FORMAT)
+    @Schema(title = "创建时间", pattern = CommonConstant.Pattern.DATETIME_FORMAT, type = "string", example = CommonConstant.Pattern.DATETIME_FORMAT_EXAMPLE)
+    private LocalDateTime createdTime;
+    @Schema(title = "更新人")
+    private String updatedBy;
+	@JsonFormat(pattern = CommonConstant.Pattern.DATETIME_FORMAT)
+    @Schema(title = "更新时间", pattern = CommonConstant.Pattern.DATETIME_FORMAT, type = "string", example = CommonConstant.Pattern.DATETIME_FORMAT_EXAMPLE)
+    private LocalDateTime updatedTime;
+}

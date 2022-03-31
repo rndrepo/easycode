@@ -1,0 +1,31 @@
+##引入宏定义
+$!init
+$!define
+
+##使用宏定义设置回调（保存位置与文件后缀）
+#save("/mapping", "Mapping.java")
+
+##使用宏定义设置包后缀
+#setPackageSuffix("mapping")
+
+##使用全局变量实现默认包导入
+import com.github.pagehelper.PageInfo;
+import $!{tableInfo.savePackageName}.entity.dto.$!{tableInfo.name}IDto;
+import $!{tableInfo.savePackageName}.entity.dto.$!{tableInfo.name}UDto;
+import $!{tableInfo.savePackageName}.entity.po.$!{tableInfo.name}Po;
+import $!{tableInfo.savePackageName}.entity.vo.$!{tableInfo.name}Vo;
+import org.mapstruct.Mapper;
+
+##使用宏定义实现类注释信息
+@Mapper(componentModel = "spring")
+public interface $!{tableInfo.name}Mapping {
+	//convert to vo
+	$!{tableInfo.name}Vo poToVo($!{tableInfo.name}Po $!{tool.firstLowerCase($tableInfo.name)}Po);
+	
+	PageInfo<$!{tableInfo.name}Vo> poToVo(PageInfo<$!{tableInfo.name}Po> $!{tool.firstLowerCase($tableInfo.name)}Po);
+	
+	//convert to po
+    $!{tableInfo.name}Po idtoToPo($!{tableInfo.name}IDto $!{tool.firstLowerCase($tableInfo.name)}IDto);
+
+    $!{tableInfo.name}Po udtoToPo($!{tableInfo.name}UDto $!{tool.firstLowerCase($tableInfo.name)}UDto);
+}

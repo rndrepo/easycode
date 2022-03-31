@@ -1,0 +1,160 @@
+$!init
+
+##引入mybatis支持
+$!mybatisSupport
+
+##设置保存名称与保存位置
+$!callback.setFileName($tool.append($!{tableInfo.name}, "Mapper.xml"))
+$!callback.setSavePath($tool.append($modulePath, "/src/main/resources/mapper"))
+
+##拿到主键
+#if(!$tableInfo.pkColumn.isEmpty())
+    #set($pk = $tableInfo.pkColumn.get(0))
+#end
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="$!{tableInfo.savePackageName}.dao.$!{tableInfo.name}Dao">
+
+	<!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="$!{tableInfo.savePackageName}.entity.po.$!{tableInfo.name}Po" >
+#foreach($column in $tableInfo.fullColumn)
+        <result column="$!column.obj.name" property="$!column.name" />
+#end
+		此处同时补充created_by last_updated_by，如有。
+		<result column="" property="createdBy"/>
+        <result column="" property="createdTime"/>
+        <result column="" property="updatedBy"/>
+        <result column="" property="updatedTime"/>
+    </resultMap>
+	
+	<!-- 通用查询结果列 -->
+    <sql id="_field_list">
+#foreach($column in $tableInfo.fullColumn)
+    $!column.obj.name#if($velocityHasNext),#end
+
+#end
+		TODO rearrange field for : createBy createDate，updatedBy，updatedTime to here, by sequence according to sequence in _value_list below
+	</sql>
+
+    <sql id="_value_list">
+#foreach($column in $tableInfo.fullColumn)
+		#{$!column.name}#if($velocityHasNext),#end
+
+#end
+		TODO delete field: createBy createDate，updatedBy，updatedTime above and replace as below.
+		#{createdBy},
+        #{createdTime},
+        #{updatedBy},
+        #{updatedTime}
+	</sql>
+	
+	<!-- 通用查询条件 -->
+    <sql id="_common_where">
+#foreach($column in $tableInfo.fullColumn)
+		<if test="$!column.name != null#if($column.type.equals("java.lang.String"))#end">AND $!column.obj.name = #{$!column.name}</if>
+#end
+
+		TODO delete field: createBy createDate above, if exist. Field already cover in _region_where below.
+		TODO fill up column for createdBy updatedBy below, if exist
+		<if test="createdBy != null">AND  = #{createdBy}</if>
+		<if test="updatedBy != null">AND  = #{updatedBy}</if>
+	</sql>
+
+    <!-- 通用范围区间查询 -->
+    <sql id="_region_where">
+		TODO change and split date time type field from _common_where to date time Start & date time End here
+		TODO fill up column for createdTime updatedTime below, if exist
+        <if test="createdTimeStart != null">AND  <![CDATA[>=]]> #{createdTimeStart, jdbcType=TIMESTAMP}</if>
+        <if test="createdTimeEnd != null">AND  <![CDATA[<=]]> #{createdTimeEnd, jdbcType=TIMESTAMP}</if>
+        <if test="updatedTimeStart != null">AND  <![CDATA[>=]]> #{updatedTimeStart, jdbcType=TIMESTAMP}</if>
+        <if test="updatedTimeEnd != null">AND  <![CDATA[<=]]> #{updatedTimeEnd, jdbcType=TIMESTAMP}</if>
+    </sql>
+
+    <!-- 通用查询in 和 not in -->
+    <sql id="_contain_where">
+		TODO change possible field from _common_where to collection query option here
+        <if test="!=null">
+            AND CUSTOMER_TYPE IN
+            <foreach item="item" index="index" collection="list" separator="," open="(" close=")" >
+                #{item}
+            </foreach>
+        </if>
+    </sql>
+
+	<!-- 通用排序处理 -->
+    <sql id="_common_sorts">
+        <choose>
+            <when test="orderColumn != null">
+                <choose>
+                    <when test="orderDirection != null">
+                        ORDER BY ${orderColumn} ${orderDirection}
+                    </when>
+                    <otherwise>
+                        ORDER BY ${orderColumn} DESC
+                    </otherwise>
+                </choose>
+            </when>
+			<!-- 默认排序 -->
+            <otherwise>
+            </otherwise>
+        </choose>
+    </sql>
+	
+    <!--查询单个-->
+    <select id="query$!{tableInfo.name}ById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="_field_list"/>
+        FROM $!tableInfo.obj.name
+		TODO double check field in WHERE condition is valid or not
+        WHERE $!pk.obj.name = #{$!pk.name}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="query$!{tableInfo.name}ByParam" resultMap="BaseResultMap">
+		SELECT
+        <include refid="_field_list"/>
+        FROM $!tableInfo.obj.name
+        <trim prefix="WHERE" prefixOverrides="AND |OR ">
+            <include refid="_common_where"/>
+            <include refid="_region_where"/>
+			TODO include _contain_where if require
+        </trim>
+        <include refid="_common_sorts"/>
+    </select>
+	
+    <!--新增所有列-->
+    <insert id="insert$!{tableInfo.name}" parameterType="$!{tableInfo.savePackageName}.entity.po.$!{tableInfo.name}Po" >
+		INSERT INTO $!tableInfo.obj.name
+			(<include refid="_field_list"/>)
+        VALUES 
+			(<include refid="_value_list"/>)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update$!{tableInfo.name}" parameterType="$!{tableInfo.savePackageName}.entity.po.$!{tableInfo.name}Po" >
+        UPDATE $!{tableInfo.obj.name}
+        <trim prefix="set" suffixOverrides=",">
+			TODO remove field which not allow to update
+	#foreach($column in $tableInfo.otherColumn)
+		<if test="$!column.name != null#if($column.type.equals("java.lang.String"))#end">$!column.obj.name = #{$!column.name},</if>
+	#end
+		
+			TODO remove field: createBy createDate above, if exist
+			TODO fill up column for updatedBy updatedTime below, if exist
+			<if test="updatedBy != null"> = #{updatedBy},</if>
+			<if test="updatedTime != null"> = #{updatedTime},</if>
+		</trim>
+        WHERE $!pk.obj.name = #{$!pk.name}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="delete$!{tableInfo.name}ById">
+		TODO double check if logical delete or physical delete
+        DELETE FROM $!{tableInfo.obj.name} WHERE $!pk.obj.name IN
+		<foreach collection="list" index="index" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

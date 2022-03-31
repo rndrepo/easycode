@@ -1,0 +1,52 @@
+﻿##引入宏定义
+$!init
+$!define
+
+##使用宏定义设置回调（保存位置与文件后缀）
+#save("/entity/qo", "Qo.java")
+
+##使用宏定义设置包后缀
+#setPackageSuffix("entity.qo")
+
+##使用全局变量实现默认包导入
+$!autoImport
+import com.nwf.common.core.constant.CommonConstant;
+import com.nwf.common.web.entity.form.PageParam;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import javax.validation.constraints.*;
+import java.time.LocalDateTime;
+
+##使用宏定义实现类注释信息
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class $!{tableInfo.name}Qo extends PageParam {
+#foreach($column in $tableInfo.fullColumn)
+	@Schema(title = "#if(${column.comment})${column.comment}#end")
+    private $!{tool.getClsNameByFullName($column.type)} $!{column.name};
+#end
+
+	TODO add validation constraints according to column in database
+	TODO remove similar property for: createdBy updatedBy createdTime updatedTime from above, and only use below:
+	TODO change possible property to array if query option is multiple selection
+	TODO change and split date time type property to date time Start & date time End query option. Annotate with proper DateTimeFormat and Schema (include pattern, type, example)
+	@Schema(title = "创建人")
+    private String createdBy;
+    @Schema(title = "更新人")
+    private String updatedBy;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @Schema(title = "创建时间开始", pattern = CommonConstant.Pattern.ISO_DATETIME_FORMAT, type = "string", example = "2020-03-01T13:01:00")
+    private LocalDateTime createdTimeStart;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @Schema(title = "创建时间结束", pattern = CommonConstant.Pattern.ISO_DATETIME_FORMAT, type = "string", example = "2020-03-01T23:59:59")
+    private LocalDateTime createdTimeEnd;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @Schema(title = "更新时间开始", pattern = CommonConstant.Pattern.ISO_DATETIME_FORMAT, type = "string", example = "2020-03-01T13:01:00")
+    private LocalDateTime updatedTimeStart;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @Schema(title = "更新时间结束", pattern = CommonConstant.Pattern.ISO_DATETIME_FORMAT, type = "string", example = "2020-03-01T23:59:59")
+    private LocalDateTime updatedTimeEnd;
+}
